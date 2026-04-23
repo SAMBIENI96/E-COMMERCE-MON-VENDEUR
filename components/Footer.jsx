@@ -236,7 +236,7 @@ const Footer = () => {
           </div>
         </div>
         <p className="py-4 text-sm text-slate-500">
-          Copyright © {new Date().getFullYear()} gocart Tous droits réservés.
+          Copyright © {new Date().getFullYear()} MON VENDEUR Tous droits réservés.
         </p>
       </div>
     </footer>
