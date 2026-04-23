@@ -12,8 +12,8 @@ export default function Product() {
     const products = useSelector(state => state.product.list);
 
     const fetchProduct = async () => {
-        const product = products.find((product) => product.id === productId);
-        setProduct(product);
+        const currentProduct = products.find((item) => item.id === productId);
+        setProduct(currentProduct);
     }
 
     useEffect(() => {
@@ -21,21 +21,16 @@ export default function Product() {
             fetchProduct()
         }
         scrollTo(0, 0)
-    }, [productId,products]);
+    }, [productId, products]);
 
     return (
         <div className="mx-6">
             <div className="max-w-7xl mx-auto">
-
-                {/* Breadcrums */}
-                <div className="  text-gray-600 text-sm mt-8 mb-5">
-                    Home / Products / {product?.category}
+                <div className="text-gray-600 text-sm mt-8 mb-5">
+                    Accueil / Produits / {product?.category}
                 </div>
 
-                {/* Product Details */}
                 {product && (<ProductDetails product={product} />)}
-
-                {/* Description & Reviews */}
                 {product && (<ProductDescription product={product} />)}
             </div>
         </div>
