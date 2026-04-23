@@ -21,10 +21,10 @@ export default function Dashboard() {
     })
 
     const dashboardCardsData = [
-        { title: 'Total Products', value: dashboardData.totalProducts, icon: ShoppingBasketIcon },
-        { title: 'Total Earnings', value: currency + dashboardData.totalEarnings, icon: CircleDollarSignIcon },
-        { title: 'Total Orders', value: dashboardData.totalOrders, icon: TagsIcon },
-        { title: 'Total Ratings', value: dashboardData.ratings.length, icon: StarIcon },
+        { title: 'Produits', value: dashboardData.totalProducts, icon: ShoppingBasketIcon },
+        { title: 'Revenus', value: currency + dashboardData.totalEarnings, icon: CircleDollarSignIcon },
+        { title: 'Commandes', value: dashboardData.totalOrders, icon: TagsIcon },
+        { title: 'Avis', value: dashboardData.ratings.length, icon: StarIcon },
     ]
 
     const fetchDashboardData = async () => {
@@ -39,8 +39,8 @@ export default function Dashboard() {
     if (loading) return <Loading />
 
     return (
-        <div className=" text-slate-500 mb-28">
-            <h1 className="text-2xl">Seller <span className="text-slate-800 font-medium">Dashboard</span></h1>
+        <div className="text-slate-500 mb-28">
+            <h1 className="text-2xl">Tableau de bord <span className="text-slate-800 font-medium">vendeur</span></h1>
 
             <div className="flex flex-wrap gap-5 my-10 mt-4">
                 {
@@ -50,13 +50,13 @@ export default function Dashboard() {
                                 <p>{card.title}</p>
                                 <b className="text-2xl font-medium text-slate-700">{card.value}</b>
                             </div>
-                            <card.icon size={50} className=" w-11 h-11 p-2.5 text-slate-400 bg-slate-100 rounded-full" />
+                            <card.icon size={50} className="w-11 h-11 p-2.5 text-slate-400 bg-slate-100 rounded-full" />
                         </div>
                     ))
                 }
             </div>
 
-            <h2>Total Reviews</h2>
+            <h2>Avis recents</h2>
 
             <div className="mt-5">
                 {
@@ -77,12 +77,12 @@ export default function Dashboard() {
                                     <p className="text-slate-400">{review.product?.category}</p>
                                     <p className="font-medium">{review.product?.name}</p>
                                     <div className='flex items-center'>
-                                        {Array(5).fill('').map((_, index) => (
-                                            <StarIcon key={index} size={17} className='text-transparent mt-0.5' fill={review.rating >= index + 1 ? "#00C950" : "#D1D5DB"} />
+                                        {Array(5).fill('').map((_, ratingIndex) => (
+                                            <StarIcon key={ratingIndex} size={17} className='text-transparent mt-0.5' fill={review.rating >= ratingIndex + 1 ? "#00C950" : "#D1D5DB"} />
                                         ))}
                                     </div>
                                 </div>
-                                <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">Voir le produit</button>
                             </div>
                         </div>
                     ))

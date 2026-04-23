@@ -17,29 +17,26 @@ export default function StoreManageProducts() {
         setLoading(false)
     }
 
-    const toggleStock = async (productId) => {
-        // Logic to toggle the stock of a product
-
-
+    const toggleStock = async () => {
     }
 
     useEffect(() => {
-            fetchProducts()
+        fetchProducts()
     }, [])
 
     if (loading) return <Loading />
 
     return (
         <>
-            <h1 className="text-2xl text-slate-500 mb-5">Manage <span className="text-slate-800 font-medium">Products</span></h1>
-            <table className="w-full max-w-4xl text-left  ring ring-slate-200  rounded overflow-hidden text-sm">
+            <h1 className="text-2xl text-slate-500 mb-5">Gerer les <span className="text-slate-800 font-medium">produits</span></h1>
+            <table className="w-full max-w-4xl text-left ring ring-slate-200 rounded overflow-hidden text-sm">
                 <thead className="bg-slate-50 text-gray-700 uppercase tracking-wider">
                     <tr>
-                        <th className="px-4 py-3">Name</th>
+                        <th className="px-4 py-3">Nom</th>
                         <th className="px-4 py-3 hidden md:table-cell">Description</th>
-                        <th className="px-4 py-3 hidden md:table-cell">MRP</th>
-                        <th className="px-4 py-3">Price</th>
-                        <th className="px-4 py-3">Actions</th>
+                        <th className="px-4 py-3 hidden md:table-cell">Prix normal</th>
+                        <th className="px-4 py-3">Prix</th>
+                        <th className="px-4 py-3">Stock</th>
                     </tr>
                 </thead>
                 <tbody className="text-slate-700">
@@ -56,7 +53,7 @@ export default function StoreManageProducts() {
                             <td className="px-4 py-3">{currency} {product.price.toLocaleString()}</td>
                             <td className="px-4 py-3 text-center">
                                 <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
-                                    <input type="checkbox" className="sr-only peer" onChange={() => toast.promise(toggleStock(product.id), { loading: "Updating data..." })} checked={product.inStock} />
+                                    <input type="checkbox" className="sr-only peer" onChange={() => toast.promise(toggleStock(product.id), { loading: "Mise a jour..." })} checked={product.inStock} />
                                     <div className="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
                                     <span className="dot absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-4"></span>
                                 </label>

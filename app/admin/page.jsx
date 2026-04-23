@@ -19,10 +19,10 @@ export default function AdminDashboard() {
     })
 
     const dashboardCardsData = [
-        { title: 'Total Products', value: dashboardData.products, icon: ShoppingBasketIcon },
-        { title: 'Total Revenue', value: currency + dashboardData.revenue, icon: CircleDollarSignIcon },
-        { title: 'Total Orders', value: dashboardData.orders, icon: TagsIcon },
-        { title: 'Total Stores', value: dashboardData.stores, icon: StoreIcon },
+        { title: 'Produits', value: dashboardData.products, icon: ShoppingBasketIcon },
+        { title: 'Chiffre d\'affaires', value: currency + dashboardData.revenue, icon: CircleDollarSignIcon },
+        { title: 'Commandes', value: dashboardData.orders, icon: TagsIcon },
+        { title: 'Boutiques', value: dashboardData.stores, icon: StoreIcon },
     ]
 
     const fetchDashboardData = async () => {
@@ -38,9 +38,8 @@ export default function AdminDashboard() {
 
     return (
         <div className="text-slate-500">
-            <h1 className="text-2xl">Admin <span className="text-slate-800 font-medium">Dashboard</span></h1>
+            <h1 className="text-2xl">Tableau de bord <span className="text-slate-800 font-medium">administrateur</span></h1>
 
-            {/* Cards */}
             <div className="flex flex-wrap gap-5 my-10 mt-4">
                 {
                     dashboardCardsData.map((card, index) => (
@@ -49,13 +48,12 @@ export default function AdminDashboard() {
                                 <p>{card.title}</p>
                                 <b className="text-2xl font-medium text-slate-700">{card.value}</b>
                             </div>
-                            <card.icon size={50} className=" w-11 h-11 p-2.5 text-slate-400 bg-slate-100 rounded-full" />
+                            <card.icon size={50} className="w-11 h-11 p-2.5 text-slate-400 bg-slate-100 rounded-full" />
                         </div>
                     ))
                 }
             </div>
 
-            {/* Area Chart */}
             <OrdersAreaChart allOrders={dashboardData.allOrders} />
         </div>
     )
