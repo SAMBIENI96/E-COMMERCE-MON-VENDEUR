@@ -9,13 +9,14 @@
 
 </div>
 
-> Une plateforme e-commerce open-source multi-vendeurs construite avec Next.js et Tailwind CSS.
+> Une plateforme e-commerce multi-vendeurs construite avec Next.js et Tailwind CSS.
 
 ---
 
 ## ✨ Fonctionnalités
 
 ### 🛒 Pour les Clients
+
 - Interface utilisateur moderne et responsive
 - Parcours d'achat fluide avec panier persisté
 - Système de notation et avis produits
@@ -23,6 +24,7 @@
 - Suivi des commandes
 
 ### 🏪 Pour les Vendeurs
+
 - Tableau de bord dédié (`/store`)
 - Gestion des produits (ajout, modification, suppression)
 - Suivi des ventes et analytiques
@@ -30,6 +32,7 @@
 - Personnalisation de la boutique
 
 ### ⚙️ Pour les Administrateurs
+
 - Panel d'administration (`/admin`)
 - Approbation des boutiques vendeurs
 - Gestion des coupons de réduction
@@ -40,16 +43,16 @@
 
 ## 🛠️ Stack Technique
 
-| Catégorie | Technologie |
-|-----------|-------------|
-| **Framework** | Next.js 15 (App Router) |
-| **Styling** | Tailwind CSS 4 |
-| **Base de données** | PostgreSQL + Prisma |
-| **État** | Redux Toolkit |
-| **Icons** | Lucide React |
-| **Notifications** | React Hot Toast |
-| **Graphiques** | Recharts |
-| **Dates** | date-fns |
+| Catégorie           | Technologie             |
+| ------------------- | ----------------------- |
+| **Framework**       | Next.js 15 (App Router) |
+| **Styling**         | Tailwind CSS 4          |
+| **Base de données** | PostgreSQL + Prisma     |
+| **État**            | Redux Toolkit           |
+| **Icons**           | Lucide React            |
+| **Notifications**   | React Hot Toast         |
+| **Graphiques**      | Recharts                |
+| **Dates**           | date-fns                |
 
 ---
 
@@ -106,39 +109,16 @@ npm run dev
 
 ### Variables d'Environnement
 
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/gocart
-DIRECT_URL=postgresql://user:password@localhost:5432/gocart
-```
-
 ---
 
 ## 📱 Pages Principales
 
-| Route | Description |
-|-------|-------------|
-| `/` | Page d'accueil publique |
-| `/shop/[username]` | Boutique d'un vendeur |
-| `/product/[id]` | Détails d'un produit |
-| `/cart` | Panier utilisateur |
-| `/create-store` | Créer une nouvelle boutique |
-| `/store` | Dashboard vendeur |
-| `/admin` | Panel administrateur |
-
----
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Veuillez consulter [CONTRIBUTING.md](./CONTRIBUTING.md) pour plus de détails.
-
----
-
-## 📜 Licence
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](./LICENSE.md) pour plus d'informations.
-
----
-
-<div align="center">
-Développé avec ❤️ par la communauté
-</div>
+| Route              | Description                 |
+| ------------------ | --------------------------- |
+| `/`                | Page d'accueil publique     |
+| `/shop/[username]` | Boutique d'un vendeur       |
+| `/product/[id]`    | Détails d'un produit        |
+| `/cart`            | Panier utilisateur          |
+| `/create-store`    | Créer une nouvelle boutique |
+| `/store`           | Dashboard vendeur           |
+| `/admin`           | Panel administrateur        |
