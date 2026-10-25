@@ -1,5 +1,4 @@
 'use client'
-import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
@@ -9,13 +8,31 @@ export default function AdminApprove() {
 
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
 
     const fetchStores = async () => {
-        setStores(storesDummyData)
-        setLoading(false)
+        try {
+            const res = await fetch('/api/admin/stores?status=pending')
+            if (!res.ok) throw new Error('Impossible de charger les demandes')
+            const data = await res.json()
+            setStores(data.stores)
+            setError("")
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const handleApprove = async () => {
+    const handleApprove = async ({ storeId, status }) => {
+        const res = await fetch('/api/admin/stores', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ storeId, status }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Mise a jour impossible')
+        await fetchStores()
     }
 
     useEffect(() => {
@@ -25,6 +42,12 @@ export default function AdminApprove() {
     return !loading ? (
         <div className="text-slate-500 mb-28">
             <h1 className="text-2xl">Validation des <span className="text-slate-800 font-medium">boutiques</span></h1>
+
+            {error && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg my-4 text-sm max-w-4xl">
+                    {error}
+                </div>
+            )}
 
             {stores.length ? (
                 <div className="flex flex-col gap-4 mt-4">
@@ -43,9 +66,11 @@ export default function AdminApprove() {
                     ))}
 
                 </div>) : (
-                <div className="flex items-center justify-center h-80">
-                    <h1 className="text-3xl text-slate-400 font-medium">Aucune demande en attente</h1>
-                </div>
+                !error && (
+                    <div className="flex items-center justify-center h-80">
+                        <h1 className="text-3xl text-slate-400 font-medium">Aucune demande en attente</h1>
+                    </div>
+                )
             )}
         </div>
     ) : <Loading />

@@ -4,21 +4,38 @@ import { Star } from 'lucide-react';
 import React, { useState } from 'react'
 import { XIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { addRating } from '@/lib/features/rating/ratingSlice';
 
-const RatingModal = ({ setRatingModal }) => {
+const RatingModal = ({ ratingModal, setRatingModal }) => {
 
+    const dispatch = useDispatch();
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState('');
 
+    const { orderId, productId } = ratingModal || {};
+
     const handleSubmit = async () => {
-        if (rating < 0 || rating > 5) {
+        if (rating < 1 || rating > 5) {
             return toast('Veuillez choisir une note');
         }
         if (review.length < 5) {
             return toast('Ajoutez un petit commentaire');
         }
 
+        const res = await fetch('/api/ratings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, productId, rating, review }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Echec de l\'envoi de l\'avis');
+        }
+
+        dispatch(addRating(data.rating));
         setRatingModal(null);
+        return data.rating;
     }
 
     return (
@@ -44,7 +61,7 @@ const RatingModal = ({ setRatingModal }) => {
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                 ></textarea>
-                <button onClick={e => toast.promise(handleSubmit(), { loading: 'Envoi en cours...' })} className='w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition'>
+                <button onClick={e => toast.promise(handleSubmit(), { loading: 'Envoi en cours...', success: 'Avis publie', error: (err) => err.message })} className='w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition'>
                     Envoyer mon avis
                 </button>
             </div>

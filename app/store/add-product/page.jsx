@@ -1,12 +1,20 @@
 'use client'
-import { assets } from "@/assets/assets"
+import { assets, categories } from "@/assets/assets"
 import Image from "next/image"
 import { useState } from "react"
 import { toast } from "react-hot-toast"
+import { useRouter } from "next/navigation"
+
+const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+})
 
 export default function StoreAddProduct() {
 
-    const categories = ['Mode africaine', 'Electromenager', 'Maison', 'Beautes et soins', 'Audio', 'Telephonie', 'Accessoires', 'Cuisine', 'Bureautique', 'Autres']
+    const router = useRouter()
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
     const [productInfo, setProductInfo] = useState({
@@ -24,10 +32,43 @@ export default function StoreAddProduct() {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
+        setLoading(true)
+        try {
+            const files = Object.values(images).filter(Boolean)
+            if (!files.length) throw new Error('Ajoutez au moins une image au produit')
+
+            const imagesDataUrl = await Promise.all(files.map(fileToDataUrl))
+
+            const payload = {
+                name: productInfo.name.trim(),
+                description: productInfo.description.trim(),
+                mrp: Number(productInfo.mrp),
+                price: Number(productInfo.price),
+                category: productInfo.category,
+                images: imagesDataUrl,
+                inStock: true,
+            }
+
+            if (payload.price > payload.mrp) {
+                throw new Error('Le prix de vente ne peut pas depasser le prix barre (MRP)')
+            }
+
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Ajout impossible')
+
+            router.push('/store/manage-product')
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
-        <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Ajout du produit..." })} className="text-slate-500 mb-28">
+        <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Ajout du produit...", success: "Produit ajoute", error: (err) => err?.message || "Echec de l'ajout" })} className="text-slate-500 mb-28">
             <h1 className="text-2xl">Ajouter un <span className="text-slate-800 font-medium">produit</span></h1>
             <p className="mt-7">Images du produit</p>
 
@@ -70,7 +111,7 @@ export default function StoreAddProduct() {
 
             <br />
 
-            <button disabled={loading} className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition">Ajouter le produit</button>
+            <button disabled={loading} className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition disabled:opacity-60">Ajouter le produit</button>
         </form>
     )
 }

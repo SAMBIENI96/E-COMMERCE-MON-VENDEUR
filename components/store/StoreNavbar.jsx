@@ -1,8 +1,11 @@
 'use client'
 import Link from "next/link"
+import { useSession, signOut } from "next-auth/react"
+import { LogOutIcon } from "lucide-react"
 
 const StoreNavbar = () => {
 
+    const { data: session } = useSession()
 
     return (
         <div className="flex items-center justify-between px-12 py-3 border-b border-slate-200 transition-all">
@@ -12,8 +15,11 @@ const StoreNavbar = () => {
                     Vendeur
                 </p>
             </Link>
-            <div className="flex items-center gap-3">
-                <p>Bonjour, vendeur</p>
+            <div className="flex items-center gap-4">
+                <p>Bonjour, {session?.user?.name || 'vendeur'}</p>
+                <button onClick={() => signOut({ callbackUrl: '/' })} className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
+                    <LogOutIcon size={18} /> Deconnexion
+                </button>
             </div>
         </div>
     )

@@ -4,25 +4,53 @@ import { useEffect, useState } from "react"
 import { MailIcon, MapPinIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import Image from "next/image"
-import { dummyStoreData, productDummyData } from "@/assets/assets"
+import { useParams } from "next/navigation"
 
 export default function StoreShop() {
+
+    const { username } = useParams()
 
     const [products, setProducts] = useState([])
     const [storeInfo, setStoreInfo] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
 
     const fetchStoreData = async () => {
-        setStoreInfo(dummyStoreData)
-        setProducts(productDummyData)
-        setLoading(false)
+        try {
+            const [storeRes, productsRes] = await Promise.all([
+                fetch(`/api/stores/${username}`),
+                fetch(`/api/products?store=${username}&limit=50`),
+            ])
+
+            const storeData = await storeRes.json()
+            if (!storeRes.ok) throw new Error(storeData.error || 'Boutique introuvable')
+
+            const productsData = await productsRes.json()
+            setStoreInfo(storeData.store)
+            setProducts(productsData.products || [])
+            setError("")
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => {
         fetchStoreData()
-    }, [])
+    }, [username])
 
-    return !loading ? (
+    if (loading) return <Loading />
+
+    if (error) {
+        return (
+            <div className="min-h-[60vh] mx-6 flex items-center justify-center">
+                <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm">{error}</div>
+            </div>
+        )
+    }
+
+    return (
         <div className="min-h-[70vh] mx-6">
             {storeInfo && (
                 <div className="max-w-7xl mx-auto bg-slate-50 rounded-xl p-6 md:p-10 mt-6 flex flex-col md:flex-row items-center gap-6 shadow-xs">
@@ -46,10 +74,16 @@ export default function StoreShop() {
 
             <div className="max-w-7xl mx-auto mb-40">
                 <h1 className="text-2xl mt-12">Produits de la <span className="text-slate-800 font-medium">boutique</span></h1>
-                <div className="mt-5 grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto">
-                    {products.map((product) => <ProductCard key={product.id} product={product} />)}
-                </div>
+                {products.length ? (
+                    <div className="mt-5 grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto">
+                        {products.map((product) => <ProductCard key={product.id} product={product} />)}
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-64">
+                        <h1 className="text-2xl text-slate-400 font-medium">Aucun produit disponible</h1>
+                    </div>
+                )}
             </div>
         </div>
-    ) : <Loading />
+    ) 
 }

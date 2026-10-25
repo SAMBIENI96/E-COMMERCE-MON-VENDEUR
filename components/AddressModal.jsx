@@ -2,8 +2,12 @@
 import { XIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "react-hot-toast"
+import { useDispatch } from "react-redux"
+import { addAddress } from "@/lib/features/address/addressSlice"
 
-const AddressModal = ({ setShowAddressModal }) => {
+const AddressModal = ({ setShowAddressModal, onSaved }) => {
+
+    const dispatch = useDispatch();
 
     const [address, setAddress] = useState({
         name: '',
@@ -26,11 +30,25 @@ const AddressModal = ({ setShowAddressModal }) => {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+        const res = await fetch('/api/addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(address),
+        })
+
+        const data = await res.json()
+        if (!res.ok) {
+            throw new Error(data.error || 'Echec de l\'ajout de l\'adresse')
+        }
+
+        dispatch(addAddress(data.address))
+        onSaved?.(data.address)
         setShowAddressModal(false)
+        return data.address
     }
 
     return (
-        <form onSubmit={e => toast.promise(handleSubmit(e), { loading: 'Ajout de l\'adresse...' })} className="fixed inset-0 z-50 bg-white/60 backdrop-blur h-screen flex items-center justify-center">
+        <form onSubmit={e => toast.promise(handleSubmit(e), { loading: 'Ajout de l\'adresse...', success: 'Adresse enregistree', error: (err) => err.message })} className="fixed inset-0 z-50 bg-white/60 backdrop-blur h-screen flex items-center justify-center">
             <div className="flex flex-col gap-5 text-slate-700 w-full max-w-sm mx-6">
                 <h2 className="text-3xl ">Ajouter une <span className="font-semibold">adresse</span></h2>
                 <input name="name" onChange={handleAddressChange} value={address.name} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text" placeholder="Votre nom" required />
@@ -41,7 +59,7 @@ const AddressModal = ({ setShowAddressModal }) => {
                     <input name="state" onChange={handleAddressChange} value={address.state} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text" placeholder="Departement" required />
                 </div>
                 <div className="flex gap-4">
-                    <input name="zip" onChange={handleAddressChange} value={address.zip} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="number" placeholder="Code postal" required />
+                    <input name="zip" onChange={handleAddressChange} value={address.zip} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text" placeholder="Code postal" required />
                     <input name="country" onChange={handleAddressChange} value={address.country} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text" placeholder="Pays" required />
                 </div>
                 <input name="phone" onChange={handleAddressChange} value={address.phone} className="p-2 px-4 outline-none border border-slate-200 rounded w-full" type="text" placeholder="Telephone" required />
