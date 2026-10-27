@@ -1,16 +1,39 @@
 'use client'
 import PageTitle from "@/components/PageTitle"
+import Loading from "@/components/Loading";
 import { useEffect, useState } from "react";
 import OrderItem from "@/components/OrderItem";
-import { orderDummyData } from "@/assets/assets";
+import { useDispatch } from "react-redux";
+import { setRatings } from "@/lib/features/rating/ratingSlice";
+import toast from "react-hot-toast";
 
 export default function Orders() {
 
+    const dispatch = useDispatch();
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setOrders(orderDummyData)
-    }, []);
+        const load = async () => {
+            try {
+                const [ordersRes, ratingsRes] = await Promise.all([
+                    fetch('/api/orders'),
+                    fetch('/api/ratings'),
+                ]);
+                const ordersData = ordersRes.ok ? await ordersRes.json() : { orders: [] };
+                const ratingsData = ratingsRes.ok ? await ratingsRes.json() : { ratings: [] };
+                setOrders(ordersData.orders || []);
+                dispatch(setRatings(ratingsData.ratings || []));
+            } catch {
+                toast.error('Impossible de charger vos commandes');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, [dispatch]);
+
+    if (loading) return <Loading />
 
     return (
         <div className="min-h-[70vh] mx-6">

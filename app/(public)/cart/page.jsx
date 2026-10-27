@@ -1,10 +1,10 @@
 'use client'
 import Counter from "@/components/Counter";
-import OrderSummary from "@/components/OrderSummary";
 import PageTitle from "@/components/PageTitle";
 import { deleteItemFromCart } from "@/lib/features/cart/cartSlice";
 import { Trash2Icon } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,12 +13,12 @@ export default function Cart() {
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$';
 
     const { cartItems } = useSelector(state => state.cart);
-    const products = useSelector(state => state.product.list);
 
     const dispatch = useDispatch();
 
     const [cartArray, setCartArray] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [products, setProducts] = useState([]);
 
     const createCartArray = () => {
         setTotalPrice(0);
@@ -38,7 +38,14 @@ export default function Cart() {
     }
 
     useEffect(() => {
-        if (products.length > 0) {
+        fetch('/api/products?limit=50')
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => setProducts(data.products || []))
+            .catch(() => setProducts([]))
+    }, [])
+
+    useEffect(() => {
+        if (cartItems) {
             createCartArray();
         }
     }, [cartItems, products]);
@@ -87,7 +94,17 @@ export default function Cart() {
                             }
                         </tbody>
                     </table>
-                    <OrderSummary totalPrice={totalPrice} items={cartArray} />
+                    <div className="w-full max-w-lg lg:max-w-[340px] bg-slate-50/30 border border-slate-200 text-slate-500 text-sm rounded-xl p-7">
+                        <h2 className="text-xl font-medium text-slate-600">Resume</h2>
+                        <div className="flex justify-between py-4 mt-2 border-y border-slate-200">
+                            <p>Sous-total :</p>
+                            <p className="font-medium text-right">{currency}{totalPrice.toLocaleString()}</p>
+                        </div>
+                        <p className="text-xs text-slate-400 my-2">Livraison offerte</p>
+                        <Link href="/checkout" className="block text-center w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all">
+                            Passer la commande
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

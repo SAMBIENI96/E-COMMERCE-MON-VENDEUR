@@ -1,7 +1,10 @@
 'use client'
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Loading from "@/components/Loading"
-import { orderDummyData } from "@/assets/assets"
+import toast from "react-hot-toast"
+import Image from "next/image"
+
+const STATUSES = ["ORDER_PLACED", "PROCESSING", "SHIPPED", "DELIVERED"]
 
 export default function StoreOrders() {
     const [orders, setOrders] = useState([])
@@ -9,12 +12,34 @@ export default function StoreOrders() {
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-    const fetchOrders = async () => {
-       setOrders(orderDummyData)
-       setLoading(false)
-    }
+    const fetchOrders = useCallback(async () => {
+        try {
+            const res = await fetch('/api/store/orders')
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Erreur')
+            setOrders(data.orders || [])
+        } catch {
+            toast.error('Impossible de charger les commandes')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
 
-    const updateOrderStatus = async () => {
+    const updateOrderStatus = async (orderId, status) => {
+        try {
+            const res = await fetch(`/api/orders/${orderId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Erreur')
+            setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)))
+            setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, status } : prev))
+            toast.success('Statut mis a jour')
+        } catch (err) {
+            toast.error(err.message)
+        }
     }
 
     const openModal = (order) => {
@@ -29,7 +54,7 @@ export default function StoreOrders() {
 
     useEffect(() => {
         fetchOrders()
-    }, [])
+    }, [fetchOrders])
 
     if (loading) return <Loading />
 
@@ -58,10 +83,9 @@ export default function StoreOrders() {
                                     <td className="px-4 py-3">{order.isCouponUsed ? <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">{order.coupon?.code}</span> : "-"}</td>
                                     <td className="px-4 py-3" onClick={(e) => { e.stopPropagation() }}>
                                         <select value={order.status} onChange={e => updateOrderStatus(order.id, e.target.value)} className="border-gray-300 rounded-md text-sm focus:ring focus:ring-blue-200">
-                                            <option value="ORDER_PLACED">ORDER_PLACED</option>
-                                            <option value="PROCESSING">PROCESSING</option>
-                                            <option value="SHIPPED">SHIPPED</option>
-                                            <option value="DELIVERED">DELIVERED</option>
+                                            {STATUSES.map((status) => (
+                                                <option key={status} value={status}>{status}</option>
+                                            ))}
                                         </select>
                                     </td>
                                     <td className="px-4 py-3 text-gray-500">{new Date(order.createdAt).toLocaleString()}</td>
@@ -90,7 +114,7 @@ export default function StoreOrders() {
                             <div className="space-y-2">
                                 {selectedOrder.orderItems.map((item, i) => (
                                     <div key={i} className="flex items-center gap-4 border border-slate-100 shadow rounded p-2">
-                                        <img src={item.product.images?.[0].src || item.product.images?.[0]} alt={item.product?.name} className="w-16 h-16 object-cover rounded" />
+                                        <Image src={item.product.images?.[0]} alt={item.product?.name} width={64} height={64} className="w-16 h-16 object-cover rounded" />
                                         <div className="flex-1">
                                             <p className="text-slate-800">{item.product?.name}</p>
                                             <p>Qte : {item.quantity}</p>

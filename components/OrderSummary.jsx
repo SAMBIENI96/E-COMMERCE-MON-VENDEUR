@@ -1,15 +1,17 @@
 import { PlusIcon, SquarePenIcon, XIcon } from 'lucide-react';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import AddressModal from './AddressModal';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { clearCart, clearCartStorage } from '@/lib/features/cart/cartSlice';
 
-const OrderSummary = ({ totalPrice }) => {
+const OrderSummary = ({ totalPrice, items }) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$';
 
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const addressList = useSelector(state => state.address.list);
 
@@ -17,16 +19,59 @@ const OrderSummary = ({ totalPrice }) => {
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [couponCodeInput, setCouponCodeInput] = useState('');
-    const [coupon, setCoupon] = useState('');
+    const [coupon, setCoupon] = useState(null);
+
+    useEffect(() => {
+        if (!selectedAddress && addressList.length > 0) {
+            setSelectedAddress(addressList[0]);
+        }
+    }, [addressList, selectedAddress]);
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
+
+        const code = couponCodeInput.trim();
+        if (!code) throw new Error('Entrez un code promo');
+
+        const res = await fetch('/api/coupons/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Code promo invalide');
+
+        setCoupon(data.coupon);
+        setCouponCodeInput('');
+        return data.coupon;
     }
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
 
-        router.push('/orders')
+        if (!selectedAddress) throw new Error('Veuillez choisir une adresse');
+        if (!items || items.length === 0) throw new Error('Votre panier est vide');
+
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                addressId: selectedAddress.id,
+                paymentMethod,
+                couponCode: coupon?.code || null,
+                items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
+            }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Echec de la commande');
+
+        // Panier vide cote client + serveur
+        dispatch(clearCart());
+        clearCartStorage();
+        fetch('/api/cart', { method: 'DELETE' }).catch(() => {});
+
+        router.push('/orders');
+        return data;
     }
 
     return (
@@ -53,17 +98,17 @@ const OrderSummary = ({ totalPrice }) => {
                         <div>
                             {
                                 addressList.length > 0 && (
-                                    <select className='border border-slate-400 p-2 w-full my-3 outline-none rounded' onChange={(e) => setSelectedAddress(addressList[e.target.value])} >
+                                    <select className='border border-slate-400 p-2 w-full my-3 outline-none rounded' onChange={(e) => setSelectedAddress(addressList[e.target.value])} defaultValue="">
                                         <option value="">Choisir une adresse</option>
                                         {
                                             addressList.map((address, index) => (
-                                                <option key={index} value={index}>{address.name}, {address.city}, {address.state}, {address.zip}</option>
+                                                <option key={address.id || index} value={index}>{address.name}, {address.city}, {address.state}, {address.zip}</option>
                                             ))
                                         }
                                     </select>
                                 )
                             }
-                            <button className='flex items-center gap-1 text-slate-600 mt-1' onClick={() => setShowAddressModal(true)} >Ajouter une adresse <PlusIcon size={18} /></button>
+                            <button type="button" className='flex items-center gap-1 text-slate-600 mt-1' onClick={() => setShowAddressModal(true)} >Ajouter une adresse <PlusIcon size={18} /></button>
                         </div>
                     )
                 }
@@ -83,7 +128,7 @@ const OrderSummary = ({ totalPrice }) => {
                 </div>
                 {
                     !coupon ? (
-                        <form onSubmit={e => toast.promise(handleCouponCode(e), { loading: 'Verification du code...' })} className='flex justify-center gap-3 mt-3'>
+                        <form onSubmit={e => toast.promise(handleCouponCode(e), { loading: 'Verification du code...', success: 'Code applique', error: (err) => err.message })} className='flex justify-center gap-3 mt-3'>
                             <input onChange={(e) => setCouponCodeInput(e.target.value)} value={couponCodeInput} type="text" placeholder='Code promo' className='border border-slate-400 p-1.5 rounded w-full outline-none' />
                             <button className='bg-slate-600 text-white px-3 rounded hover:bg-slate-800 active:scale-95 transition-all'>Appliquer</button>
                         </form>
@@ -91,7 +136,7 @@ const OrderSummary = ({ totalPrice }) => {
                         <div className='w-full flex items-center justify-center gap-2 text-xs mt-2'>
                             <p>Code : <span className='font-semibold ml-1'>{coupon.code.toUpperCase()}</span></p>
                             <p>{coupon.description}</p>
-                            <XIcon size={18} onClick={() => setCoupon('')} className='hover:text-red-700 transition cursor-pointer' />
+                            <XIcon size={18} onClick={() => setCoupon(null)} className='hover:text-red-700 transition cursor-pointer' />
                         </div>
                     )
                 }
@@ -100,9 +145,9 @@ const OrderSummary = ({ totalPrice }) => {
                 <p>Total :</p>
                 <p className='font-medium text-right'>{currency}{coupon ? (totalPrice - (coupon.discount / 100 * totalPrice)).toFixed(2) : totalPrice.toLocaleString()}</p>
             </div>
-            <button onClick={e => toast.promise(handlePlaceOrder(e), { loading: 'Commande en cours...' })} className='w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all'>Passer la commande</button>
+            <button onClick={e => toast.promise(handlePlaceOrder(e), { loading: 'Commande en cours...', success: 'Commande passee', error: (err) => err.message })} className='w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all'>Passer la commande</button>
 
-            {showAddressModal && <AddressModal setShowAddressModal={setShowAddressModal} />}
+            {showAddressModal && <AddressModal setShowAddressModal={setShowAddressModal} onSaved={(addr) => setSelectedAddress(addr)} />}
 
         </div>
     )

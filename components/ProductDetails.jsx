@@ -24,7 +24,11 @@ const ProductDetails = ({ product }) => {
         dispatch(addToCart({ productId }))
     }
 
-    const averageRating = product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length;
+    const ratings = product.rating || []
+    const averageRating = product.avgRating != null
+        ? product.avgRating
+        : (ratings.length ? ratings.reduce((acc, item) => acc + item.rating, 0) / ratings.length : 0)
+    const totalRatings = product.totalRatings != null ? product.totalRatings : ratings.length
 
     return (
         <div className="flex max-lg:flex-col gap-12">
@@ -46,7 +50,7 @@ const ProductDetails = ({ product }) => {
                     {Array(5).fill('').map((_, index) => (
                         <StarIcon key={index} size={14} className='text-transparent mt-0.5' fill={averageRating >= index + 1 ? "#00C950" : "#D1D5DB"} />
                     ))}
-                    <p className="text-sm ml-3 text-slate-500">{product.rating.length} avis</p>
+                    <p className="text-sm ml-3 text-slate-500">{totalRatings} avis</p>
                 </div>
                 <div className="flex items-start my-6 gap-3 text-2xl font-semibold text-slate-800">
                     <p>{currency}{product.price}</p>
